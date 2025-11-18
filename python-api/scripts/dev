@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# Start development server
+exec uvicorn --app-dir opty_api --host ${BIND:-0.0.0.0} --port ${PORT:-8000} --reload main:app

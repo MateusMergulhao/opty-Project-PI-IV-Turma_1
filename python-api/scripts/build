@@ -1,0 +1,22 @@
+#!/bin/bash -eu
+
+# Variables
+readonly NAME=opty_api
+readonly VERSION=$(grep version pyproject.toml | head -n1 | awk -F\" '{ print $2 }')
+readonly DOCKER_USER=${DOCKER_USER:-}
+readonly TAG="$DOCKER_USER/${NAME}:$VERSION"
+
+# Build image
+echo "Building Docker image: $TAG"
+docker build --no-cache --rm --file docker/Dockerfile --tag $TAG .
+
+# Push image
+echo
+read -p "Do you want to push this image to Docker Hub? (y/n): " RESP
+if [[ "$RESP" =~ ^[yY]$ ]]; then
+  echo "Pushing image to Docker Hub..."
+  docker push $TAG
+  echo "Image pushed as $TAG"
+else
+  echo "Image saved locally as $TAG. Push skipped."
+fi

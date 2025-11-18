@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# Start production server
+exec uvicorn --app-dir ${APP:-/app/opty_api} --host ${BIND:-0.0.0.0} --port ${PORT:-80} main:app

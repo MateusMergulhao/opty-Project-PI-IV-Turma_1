@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# validate imports order
+poetry run isort --treat-all-comment-as-code --diff --check-only opty_api tests
+
+# vaildate guidelines
+poetry run pylint -j0 --output-format=colorized opty_api tests ||
+poetry run pylint-exit -efail -wfail -cfail -rfail $?
+
+# run unit tests
+poetry run python -m unittest discover -p 't_*.py' tests/unit
