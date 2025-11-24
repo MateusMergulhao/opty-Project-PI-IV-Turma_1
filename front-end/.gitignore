@@ -45,3 +45,7 @@ src/components/*
 # 7. NÃO ignora a pasta 'src/components/ui' e seu conteúdo
 !src/components/ui/
 !src/components/ui/**
+
+# 8. NÃO ignora a pasta 'src/pages' e seu conteúdo
+!src/pages/
+!src/pages/**
