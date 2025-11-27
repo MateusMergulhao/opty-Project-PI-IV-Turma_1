@@ -38,3 +38,12 @@ async def get_user_from_token(access_token: str) -> Optional[UserResponse]:
     # Error in supabase: raise custom error
     except Exception as e:
         raise SupabaseError(f'Error getting user from token: {str(e)}') from e
+
+import secrets
+from datetime import datetime, timedelta
+
+def generate_refresh_token(days_valid: int = 7):
+    token = secrets.token_urlsafe(64)
+    expires_at = datetime.utcnow() + timedelta(days=days_valid)
+    return token, expires_at
+

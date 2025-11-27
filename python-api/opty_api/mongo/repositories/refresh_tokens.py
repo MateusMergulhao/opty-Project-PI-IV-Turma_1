@@ -1,10 +1,23 @@
+# opty_api/mongo/repositories/refresh_tokens.py
 from datetime import datetime
 from pymongo.collection import Collection
+from pymongo import ASCENDING
 from opty_api.mongo.setup.connection import db
 
 class RefreshTokenRepository:
     def __init__(self):
         self.collection: Collection = db["refresh_tokens"]
+
+        # Índices importantes
+        # token único
+        self.collection.create_index(
+            [("token", ASCENDING)], unique=True, background=True
+        )
+
+        # TTL para excluir automaticamente tokens expirados
+        self.collection.create_index(
+            [("expires_at", ASCENDING)], expireAfterSeconds=0, background=True
+        )
 
     def create(self, user_id: str, token: str, expires_at: datetime):
         doc = {

@@ -6,6 +6,8 @@ User login service.
 from opty_api.app import container
 from opty_api.err.supabase_error import SupabaseError
 from supabase_auth.errors import AuthApiError
+from opty_api.utils.auth import generate_refresh_token
+from opty_api.mongo.repositories.refresh_tokens import RefreshTokenRepository
 
 
 # --- TYPES ---
@@ -33,6 +35,15 @@ async def login_user(email: str, password: str) -> AuthResponse:
             'email': email,
             'password': password,
         })
+        # Obter user_id do supabase
+        user_id = auth_response.user.id
+
+        # Criar refresh token interno
+        refresh_repo = RefreshTokenRepository()
+        refresh_token, expires_at = generate_refresh_token()
+        refresh_repo.create(user_id=user_id, token=refresh_token, expires_at=expires_at)
+
+    
 
     # Error in supabase auth: raise custom error
     except AuthApiError as e:
@@ -43,7 +54,14 @@ async def login_user(email: str, password: str) -> AuthResponse:
         raise SupabaseError(f'[SUPABASE  ] Login failed: {str(e)}') from e
 
     # Return auth response
-    return auth_response
+    return {
+    "access_token": auth_response.session.access_token,  # do Supabase
+    "refresh_token": refresh_token,                     # nosso
+    "user": {
+        "id": user_id,
+        "email": auth_response.user.email
+    }
+}
 
 
 async def login_with_oauth(provider: str) -> OAuthResponse:
