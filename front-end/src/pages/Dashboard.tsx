@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Smartphone, Shirt, Home, Dumbbell, TrendingDown, Search, Zap, PiggyBank, Bell, X } from 'lucide-react';
+import { Smartphone, Shirt, Home, Dumbbell, TrendingDown, Search, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -7,14 +7,13 @@ import { Badge } from '@/components/ui/badge';
 import DashboardNav from '@/components/DashboardNav';
 import Footer from '@/components/Footer';
 import { useState } from 'react';
-import { mockDeals, mockSearchSuggestions } from '@/lib/mocks';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { useAuth } from '@/hooks/useAuth';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
-  const [showNotifications, setShowNotifications] = useState(false);
-  const userName = 'João';
+  const { userProfile } = useAuth();
+  const userName = userProfile?.name || 'Usuário';
 
   const handleSearch = (query: string) => {
     if (query.trim()) {
@@ -29,25 +28,49 @@ const Dashboard = () => {
     { id: 'sports', name: 'Esportes', icon: Dumbbell, color: 'bg-orange-500' },
   ];
 
-  const quickCategories = mockSearchSuggestions;
+  const quickCategories = ['Smartphones', 'Notebooks', 'TVs', 'Roupas', 'Tênis', 'Livros'];
 
-  const todayDeals = mockDeals;
+  const todayDeals = [
+    {
+      name: 'iPhone 15 Pro 256GB',
+      oldPrice: 7999,
+      newPrice: 6499,
+      discount: 19,
+      store: 'Amazon',
+    },
+    {
+      name: 'Samsung Galaxy S24 Ultra',
+      oldPrice: 8999,
+      newPrice: 7299,
+      discount: 19,
+      store: 'Magazine Luiza',
+    },
+    {
+      name: 'Notebook Dell Inspiron i15',
+      oldPrice: 4299,
+      newPrice: 3199,
+      discount: 26,
+      store: 'Mercado Livre',
+    },
+    {
+      name: 'Smart TV LG 55\' 4K',
+      oldPrice: 3499,
+      newPrice: 2699,
+      discount: 23,
+      store: 'Casas Bahia',
+    },
+  ];
 
   return (
     <div className='min-h-screen flex flex-col bg-background'>
-      <DashboardNav
-        onSearch={handleSearch}
-        userName={userName}
-        showSearch={false}
-        onNotificationsClick={() => setShowNotifications(true)}
-      />
+      <DashboardNav onSearch={handleSearch} userName={userName} />
 
       {/* Hero Section */}
       <section className='py-12 px-4 sm:px-6 lg:px-8 bg-gradient-hero'>
         <div className='container mx-auto'>
           <div className='max-w-4xl mx-auto text-center'>
             <h1 className='text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4 animate-fade-in-up'>
-              Olá, {userName}!
+              Olá, {userName}! 👋
               <br />
               <span className='gradient-text'>O que você procura hoje?</span>
             </h1>
@@ -63,22 +86,20 @@ const Dashboard = () => {
               }}
               className='max-w-2xl mx-auto mb-6 animate-fade-in-up'
             >
-              <div className='flex items-center gap-2'>
-                <div className='relative flex-1'>
-                  <Search className='absolute left-4 top-1/2 -translate-y-1/2 h-6 w-6 text-muted-foreground' />
-                  <Input
-                    type='search'
-                    placeholder='Busque produtos, marcas ou categorias...'
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className='pl-14 pr-4 h-16 text-lg shadow-lg'
-                  />
-                </div>
+              <div className='relative'>
+                <Search className='absolute left-4 top-1/2 -translate-y-1/2 h-6 w-6 text-muted-foreground' />
+                <Input
+                  type='search'
+                  placeholder='Busque produtos, marcas ou categorias...'
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className='pl-14 pr-4 h-16 text-lg shadow-lg'
+                />
                 <Button
                   type='submit'
                   variant='gradient'
                   size='lg'
-                  className='h-16 px-8 transition-transform hover:scale-[1.02]'
+                  className='absolute right-2 top-1/2 -translate-y-1/2'
                 >
                   Buscar
                 </Button>
@@ -181,7 +202,7 @@ const Dashboard = () => {
                       <div className='text-xs text-muted-foreground mt-1'>em {deal.store}</div>
                     </div>
 
-                    <Button variant='gradient' size='sm' className='w-full' onClick={() => handleSearch(deal.name)}>
+                    <Button variant='gradient' size='sm' className='w-full'>
                       Ver Ofertas
                     </Button>
                   </div>
@@ -191,56 +212,6 @@ const Dashboard = () => {
           </div>
         </div>
       </section>
-
-      {/* Notifications Sheet */}
-      <Sheet open={showNotifications} onOpenChange={setShowNotifications}>
-        <SheetContent side='left' className='w-96 p-0' hideClose>
-          <div className='bg-gradient-primary text-white p-4 flex items-center justify-between'>
-            <div className='flex items-center gap-3'>
-              <div className='w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center'>
-                <Bell className='h-5 w-5' />
-              </div>
-              <div>
-                <div className='text-sm font-semibold'>Central de Notificações</div>
-                <div className='text-xs opacity-80'>Atualizações e alertas do Opty</div>
-              </div>
-            </div>
-            <button className='rounded-md hover:bg-white/10 p-2' aria-label='Fechar' onClick={() => setShowNotifications(false)}>
-              <X className='h-5 w-5' />
-            </button>
-          </div>
-          <div className='p-4 space-y-3'>
-            <div className='glass p-4 rounded-xl border border-primary/20'>
-              <div className='flex items-center justify-between mb-1'>
-                <div className='text-sm font-medium'>Promoções em Smartphones</div>
-                <span className='text-xs text-muted-foreground'>agora</span>
-              </div>
-              <p className='text-sm text-muted-foreground'>Novas ofertas disponíveis. Confira as melhores opções.</p>
-              <Button variant='gradient' size='sm' className='mt-3 w-full' onClick={() => handleSearch('Smartphones')}>Ver ofertas</Button>
-            </div>
-            <div className='glass p-4 rounded-xl border border-primary/20'>
-              <div className='flex items-center justify-between mb-1'>
-                <div className='text-sm font-medium'>Alerta de preço</div>
-                <span className='text-xs text-muted-foreground'>há 2h</span>
-              </div>
-              <p className='text-sm text-muted-foreground'>O preço de iPhone 15 Pro baixou nas lojas parceiras.</p>
-              <Button variant='outline' size='sm' className='mt-3 w-full' onClick={() => handleSearch('iPhone 15 Pro')}>Comparar preços</Button>
-            </div>
-            <div className='glass p-4 rounded-xl border border-primary/20'>
-              <div className='flex items-center justify-between mb-1'>
-                <div className='text-sm font-medium'>Favoritos atualizados</div>
-                <span className='text-xs text-muted-foreground'>ontem</span>
-              </div>
-              <p className='text-sm text-muted-foreground'>Novidades nas suas lojas favoritas.</p>
-              <Button variant='ghost' size='sm' className='mt-3 w-full' onClick={() => navigate('/resultados?q=favoritos')}>Ver atualizações</Button>
-            </div>
-            <div className='flex gap-2 pt-2'>
-              <Button variant='outline' className='flex-1' onClick={() => setShowNotifications(false)}>Fechar</Button>
-              <Button variant='gradient' className='flex-1' onClick={() => navigate('/configuracoes')}>Configurar</Button>
-            </div>
-          </div>
-        </SheetContent>
-      </Sheet>
 
       {/* How It Works */}
       <section className='py-12 px-4 sm:px-6 lg:px-8 bg-background'>
@@ -271,8 +242,8 @@ const Dashboard = () => {
             </div>
 
             <div className='text-center'>
-              <div className='w-16 h-16 rounded-full bg-gradient-primary flex items-center justify-center mx-auto mb-4 shadow-glow'>
-                <PiggyBank className='h-8 w-8 text-white' />
+              <div className='w-16 h-16 rounded-full bg-accent flex items-center justify-center mx-auto mb-4 shadow-lg'>
+                <Badge className='h-8 w-8 bg-transparent'>💰</Badge>
               </div>
               <h3 className='font-semibold text-lg mb-2'>3. Economize dinheiro</h3>
               <p className='text-muted-foreground'>
@@ -283,7 +254,7 @@ const Dashboard = () => {
         </div>
       </section>
 
-      <Footer loggedIn />
+      <Footer />
     </div>
   );
 };

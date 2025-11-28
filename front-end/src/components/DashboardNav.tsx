@@ -1,8 +1,13 @@
+/**
+ * IMPORTS
+ */
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Tag, Search, User, Bell, LogOut, Settings, Menu, X } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Tag, Search, User, Bell, LogOut, Settings, Menu, X, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,16 +17,27 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 
+
+/**
+ * TYPES
+ */
 interface DashboardNavProps {
   onSearch?: (query: string) => void;
   userName?: string;
-  showSearch?: boolean;
-  onNotificationsClick?: () => void;
 }
 
-const DashboardNav = ({ onSearch, userName = "Usuário", showSearch = true, onNotificationsClick }: DashboardNavProps) => {
+
+/**
+ * CODE
+ */
+
+const DashboardNav = ({ onSearch, userName = "Usuário" }: DashboardNavProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { signOut } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,6 +45,25 @@ const DashboardNav = ({ onSearch, userName = "Usuário", showSearch = true, onNo
       onSearch(searchQuery);
     }
   };
+
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Logout realizado!",
+        description: "Até logo!",
+      });
+      navigate("/login");
+    } catch (error: any) {
+      toast({
+        title: "Erro ao fazer logout",
+        description: error.message || "Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  };
+
 
   return (
     <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border shadow-sm">
@@ -42,32 +77,10 @@ const DashboardNav = ({ onSearch, userName = "Usuário", showSearch = true, onNo
             <span className="text-xl font-bold gradient-text hidden sm:block">Opty</span>
           </Link>
 
-          {/* Search Bar - Desktop */}
-          {showSearch && (
-            <form
-              onSubmit={handleSearch}
-              className="hidden md:flex flex-1 max-w-2xl mx-4"
-            >
-              <div className="relative w-full">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Busque produtos, marcas ou categorias..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-4 h-12 text-base"
-                />
-              </div>
-              <Button type="submit" variant="gradient" className="ml-2 h-12 px-6">
-                Buscar
-              </Button>
-            </form>
-          )}
-
           {/* User Menu & Notifications - Desktop */}
           <div className="hidden md:flex items-center gap-3">
             {/* Notifications */}
-            <Button variant="ghost" size="icon" className="relative" onClick={onNotificationsClick}>
+            <Button variant="ghost" size="icon" className="relative">
               <Bell className="h-5 w-5" />
               <Badge
                 variant="destructive"
@@ -95,17 +108,15 @@ const DashboardNav = ({ onSearch, userName = "Usuário", showSearch = true, onNo
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to="/configuracoes" className="cursor-pointer">
-                    <Settings className="mr-2 h-4 w-4" />
-                    Configurações
+                  <Link to="/chat/cliente" className="cursor-pointer">
+                    <MessageCircle className="mr-2 h-4 w-4" />
+                    Chat Suporte
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link to="/" className="cursor-pointer text-destructive">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Sair
-                  </Link>
+                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sair
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -129,23 +140,21 @@ const DashboardNav = ({ onSearch, userName = "Usuário", showSearch = true, onNo
         {isMobileMenuOpen && (
           <div className="md:hidden mt-4 pb-4 border-t border-border pt-4 animate-fade-in">
             {/* Mobile Search */}
-            {showSearch && (
-              <form onSubmit={handleSearch} className="mb-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    type="search"
-                    placeholder="Buscar produtos..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-                <Button type="submit" variant="gradient" className="w-full mt-2">
-                  Buscar
-                </Button>
-              </form>
-            )}
+            <form onSubmit={handleSearch} className="mb-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Buscar produtos..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <Button type="submit" variant="gradient" className="w-full mt-2">
+                Buscar
+              </Button>
+            </form>
 
             {/* Mobile Links */}
             <div className="space-y-2">
@@ -155,14 +164,13 @@ const DashboardNav = ({ onSearch, userName = "Usuário", showSearch = true, onNo
                   Meu Perfil
                 </Link>
               </Button>
-              <Button
-                variant="ghost"
-                className="w-full justify-start relative"
-                onClick={() => {
-                  if (onNotificationsClick) onNotificationsClick();
-                  setIsMobileMenuOpen(false);
-                }}
-              >
+              <Button variant="ghost" className="w-full justify-start" asChild>
+                <Link to="/chat/cliente" onClick={() => setIsMobileMenuOpen(false)}>
+                  <MessageCircle className="mr-2 h-4 w-4" />
+                  Chat Suporte
+                </Link>
+              </Button>
+              <Button variant="ghost" className="w-full justify-start relative">
                 <Bell className="mr-2 h-4 w-4" />
                 Notificações
                 <Badge variant="destructive" className="ml-auto">
@@ -172,12 +180,13 @@ const DashboardNav = ({ onSearch, userName = "Usuário", showSearch = true, onNo
               <Button
                 variant="ghost"
                 className="w-full justify-start text-destructive hover:text-destructive"
-                asChild
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  handleLogout();
+                }}
               >
-                <Link to="/" onClick={() => setIsMobileMenuOpen(false)}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Sair
-                </Link>
+                <LogOut className="mr-2 h-4 w-4" />
+                Sair
               </Button>
             </div>
           </div>

@@ -76,13 +76,27 @@ const Index = () => {
               </Button>
             </div>
 
-            
+            {/* Stats */}
+            <div className='grid grid-cols-3 gap-6 mt-16 max-w-2xl mx-auto'>
+              <div className='text-center'>
+                <div className='text-3xl font-bold gradient-text'>1000+</div>
+                <div className='text-sm text-muted-foreground mt-1'>Lojas Comparadas</div>
+              </div>
+              <div className='text-center'>
+                <div className='text-3xl font-bold gradient-text'>40%</div>
+                <div className='text-sm text-muted-foreground mt-1'>Economia Média</div>
+              </div>
+              <div className='text-center'>
+                <div className='text-3xl font-bold gradient-text'>50k+</div>
+                <div className='text-sm text-muted-foreground mt-1'>Usuários Ativos</div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section id='features' className='py-20 px-4 sm:px-6 lg:px-8 bg-gradient-soft scroll-mt-24'>
+      <section id='features' className='py-20 px-4 sm:px-6 lg:px-8 bg-background'>
         <div className='container mx-auto'>
           <div className='text-center mb-12'>
             <h2 className='text-3xl sm:text-4xl font-bold text-foreground mb-4'>
@@ -113,7 +127,7 @@ const Index = () => {
       </section>
 
       {/* How It Works Section */}
-      <section id='about' className='py-20 px-4 sm:px-6 lg:px-8 bg-gradient-soft scroll-mt-24'>
+      <section id='about' className='py-20 px-4 sm:px-6 lg:px-8 bg-gradient-subtle'>
         <div className='container mx-auto'>
           <div className='text-center mb-12'>
             <h2 className='text-3xl sm:text-4xl font-bold text-foreground mb-4'>
@@ -152,13 +166,10 @@ const Index = () => {
       </section>
 
       {/* CTA Section */}
-      <section
-        id='contact'
-        className='py-20 px-4 sm:px-6 lg:px-8 bg-gradient-primary relative overflow-hidden scroll-mt-24 dark:[--gradient-primary:linear-gradient(180deg,hsl(217_68%_18%)_0%,hsl(217_60%_22%)_50%,hsl(217_55%_26%)_100%)]'
-      >
-        <div className='absolute inset-0 opacity-20'>
-          <div className='absolute top-10 left-10 w-72 h-72 bg-primary/25 rounded-full blur-3xl' />
-          <div className='absolute bottom-10 right-10 w-96 h-96 bg-primary/15 rounded-full blur-3xl' />
+      <section id='contact' className='py-20 px-4 sm:px-6 lg:px-8 bg-gradient-primary relative overflow-hidden'>
+        <div className='absolute inset-0 opacity-10'>
+          <div className='absolute top-10 left-10 w-72 h-72 bg-white rounded-full blur-3xl' />
+          <div className='absolute bottom-10 right-10 w-96 h-96 bg-white rounded-full blur-3xl' />
         </div>
         
         <div className='container mx-auto relative z-10'>
@@ -171,10 +182,10 @@ const Index = () => {
             </p>
             
             <div className='flex flex-col sm:flex-row gap-4 justify-center mb-12'>
-              <Button size='xl' variant='default' asChild>
+              <Button size='xl' variant='secondary' asChild className='bg-white hover:bg-white/90 text-primary'>
                 <Link to='/register'>Criar Conta Grátis</Link>
               </Button>
-              <Button size='xl' variant='outline' asChild>
+              <Button size='xl' variant='outline' asChild className='border-white text-primary hover:bg-white/10'>
                 <Link to='/login'>Já tenho conta</Link>
               </Button>
             </div>

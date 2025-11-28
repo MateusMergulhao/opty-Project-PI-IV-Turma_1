@@ -38,7 +38,7 @@ const ChatMessage = ({ type, message, time, senderName }: ChatMessageProps) => {
       </div>
 
       {/* Message Content */}
-      <div className={cn("flex flex-col max-w-[70%]", isClient ? "items-end" : "items-start")}>
+      <div className={cn("flex flex-col max-w-[70%] min-w-0", isClient ? "items-end" : "items-start")}>
         {/* Sender Name */}
         {senderName && (
           <span className="text-xs font-medium text-muted-foreground mb-1">{senderName}</span>
@@ -47,13 +47,14 @@ const ChatMessage = ({ type, message, time, senderName }: ChatMessageProps) => {
         {/* Message Bubble */}
         <div
           className={cn(
-            "rounded-2xl px-4 py-3 shadow-sm",
+            "rounded-2xl px-4 py-3 shadow-sm overflow-hidden",
             isClient
               ? "bg-primary text-primary-foreground rounded-tr-sm"
               : "bg-muted text-foreground rounded-tl-sm"
           )}
+          style={{ maxWidth: '100%' }}
         >
-          <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">{message}</p>
+          <p className="text-sm leading-relaxed" style={{ wordBreak: 'break-word', overflowWrap: 'break-word', whiteSpace: 'pre-wrap' }}>{message}</p>
         </div>
 
         {/* Timestamp */}

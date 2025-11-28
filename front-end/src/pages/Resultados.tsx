@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -15,10 +16,8 @@ import {
 } from '@/components/ui/select';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import DashboardNav from '@/components/DashboardNav';
-import { Bell } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 import Footer from '@/components/Footer';
-import { mockStores, mockProducts } from '@/lib/mocks';
 
 const Resultados = () => {
   const [searchParams] = useSearchParams();
@@ -34,46 +33,45 @@ const Resultados = () => {
   const [sortBy, setSortBy] = useState('lowest-price');
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
-  const stores = mockStores;
-  const [showNotifications, setShowNotifications] = useState(false);
+  const stores = [
+    { id: 'amazon', name: 'Amazon' },
+    { id: 'magalu', name: 'Magazine Luiza' },
+    { id: 'mercadolivre', name: 'Mercado Livre' },
+    { id: 'americanas', name: 'Americanas' },
+    { id: 'submarino', name: 'Submarino' },
+    { id: 'casasbahia', name: 'Casas Bahia' },
+  ];
 
-  const products = mockProducts;
-
-  const normalize = (s: string) => s.toLowerCase().replace(/\s/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  const storeNameToId = (name: string) => {
-    const n = normalize(name);
-    const match = stores.find((st) => normalize(st.name) === n || st.id === n);
-    return match?.id || n;
-  };
-
-  const filteredProducts = products
-    .map((product) => {
-      const filteredOffers = product.offers.filter((offer) => {
-        const inRange = offer.price >= filters.priceMin && offer.price <= filters.priceMax;
-        const offerStoreId = storeNameToId(offer.store);
-        const storeMatch = filters.stores.length === 0 || filters.stores.includes(offerStoreId);
-        const cond = normalize(offer.condition);
-        const conditionMatch =
-          filters.condition === 'all' ||
-          (filters.condition === 'new' && cond.includes('novo')) ||
-          (filters.condition === 'used' && (cond.includes('usado') || cond.includes('seminovo')));
-        return inRange && storeMatch && conditionMatch;
-      });
-      return { ...product, offers: filteredOffers };
-    })
-    .filter((p) => p.offers.length > 0)
-    .sort((a, b) => {
-      switch (sortBy) {
-        case 'lowest-price':
-          return Math.min(...a.offers.map((o) => o.price)) - Math.min(...b.offers.map((o) => o.price));
-        case 'highest-price':
-          return Math.max(...b.offers.map((o) => o.price)) - Math.max(...a.offers.map((o) => o.price));
-        case 'alphabetical':
-          return a.name.localeCompare(b.name);
-        default:
-          return 0;
-      }
-    });
+  // Mock products data
+  const products = [
+    {
+      name: 'iPhone 15 Pro 256GB Azul Titânio',
+      offers: [
+        { store: 'Mercado Livre', price: 6450, condition: 'Novo', shipping: 'Grátis', link: '#' },
+        { store: 'Amazon', price: 6499, condition: 'Novo', shipping: 'Grátis', link: '#' },
+        { store: 'Magazine Luiza', price: 6599, condition: 'Novo', shipping: 'R$ 15,00', link: '#' },
+        { store: 'Americanas', price: 6799, condition: 'Novo', shipping: 'R$ 20,00', link: '#' },
+        { store: 'Submarino', price: 6850, condition: 'Novo', shipping: 'Grátis', link: '#' },
+      ],
+    },
+    {
+      name: 'iPhone 15 Pro 256GB Preto Titânio',
+      offers: [
+        { store: 'Amazon', price: 6499, condition: 'Novo', shipping: 'Grátis', link: '#' },
+        { store: 'Magazine Luiza', price: 6549, condition: 'Novo', shipping: 'Grátis', link: '#' },
+        { store: 'Casas Bahia', price: 6699, condition: 'Novo', shipping: 'R$ 25,00', link: '#' },
+      ],
+    },
+    {
+      name: 'iPhone 15 Pro 512GB Azul Titânio',
+      offers: [
+        { store: 'Amazon', price: 7899, condition: 'Novo', shipping: 'Grátis', link: '#' },
+        { store: 'Mercado Livre', price: 7799, condition: 'Novo', shipping: 'Grátis', link: '#' },
+        { store: 'Magazine Luiza', price: 7999, condition: 'Novo', shipping: 'R$ 30,00', link: '#' },
+        { store: 'Americanas', price: 8199, condition: 'Novo', shipping: 'Grátis', link: '#' },
+      ],
+    },
+  ];
 
   const toggleStore = (storeId: string) => {
     setFilters((prev) => ({
@@ -107,6 +105,14 @@ const Resultados = () => {
       <div>
         <Label className='mb-3 block font-semibold'>Faixa de Preço</Label>
         <div className='space-y-4'>
+          <Slider
+            min={0}
+            max={10000}
+            step={100}
+            value={[filters.priceMin, filters.priceMax]}
+            onValueChange={([min, max]) => setFilters({ ...filters, priceMin: min, priceMax: max })}
+            className='mb-4'
+          />
           <div className='flex gap-2'>
             <div className='flex-1'>
               <Label className='text-xs text-muted-foreground mb-1 block'>Mínimo</Label>
@@ -179,8 +185,8 @@ const Resultados = () => {
   );
 
   return (
-    <div className='min-h-screen flex flex-col bg-gradient-soft'>
-      <DashboardNav userName='João' showSearch={true} onNotificationsClick={() => setShowNotifications(true)} />
+    <div className='min-h-screen flex flex-col bg-background'>
+      <DashboardNav userName='João' />
 
       {/* Breadcrumb */}
       <div className='border-b border-border bg-muted/30'>
@@ -214,7 +220,7 @@ const Resultados = () => {
                     Resultados para: <span className='gradient-text'>{searchQuery}</span>
                   </h1>
                   <p className='text-muted-foreground'>
-                    Encontramos {filteredProducts.length} produtos em {stores.length} lojas
+                    Encontramos {products.length} produtos em {stores.length} lojas
                   </p>
                 </div>
 
@@ -257,13 +263,13 @@ const Resultados = () => {
 
             {/* Products Grid */}
             <div className='space-y-4'>
-              {filteredProducts.map((product, index) => (
+              {products.map((product, index) => (
                 <ProductCard key={index} name={product.name} offers={product.offers} />
               ))}
             </div>
 
             {/* Empty State (if needed) */}
-            {filteredProducts.length === 0 && (
+            {products.length === 0 && (
               <div className='text-center py-12'>
                 <div className='text-6xl mb-4'>🔍</div>
                 <h3 className='text-xl font-semibold mb-2'>Nenhum resultado encontrado</h3>
@@ -279,34 +285,7 @@ const Resultados = () => {
         </div>
       </div>
 
-      <Footer loggedIn />
-      <Sheet open={showNotifications} onOpenChange={setShowNotifications}>
-        <SheetContent side='left' className='w-96 p-0' hideClose>
-          <div className='bg-gradient-primary text-white p-4 flex items-center justify-between'>
-            <div className='flex items-center gap-3'>
-              <div className='w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center'>
-                <Bell className='h-5 w-5' />
-              </div>
-              <div>
-                <div className='text-sm font-semibold'>Central de Notificações</div>
-                <div className='text-xs opacity-80'>Atualizações e alertas do Opty</div>
-              </div>
-            </div>
-            <button className='rounded-md hover:bg-white/10 p-2' aria-label='Fechar' onClick={() => setShowNotifications(false)}>
-              <X className='h-5 w-5' />
-            </button>
-          </div>
-          <div className='p-4 space-y-3'>
-            <div className='glass p-4 rounded-xl border border-primary/20'>
-              <div className='flex items-center justify-between mb-1'>
-                <div className='text-sm font-medium'>Novas ofertas</div>
-                <span className='text-xs text-muted-foreground'>agora</span>
-              </div>
-              <p className='text-sm text-muted-foreground'>Veja as melhores ofertas relacionadas à sua busca.</p>
-            </div>
-          </div>
-        </SheetContent>
-      </Sheet>
+      <Footer />
     </div>
   );
 };
