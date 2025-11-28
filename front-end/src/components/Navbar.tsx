@@ -20,22 +20,9 @@ const Navbar = () => {
   const navLinks = [
     { name: "Home", path: "/" },
     { name: "Funcionalidades", path: "/#features" },
-    { name: "Sobre", path: "/sobre" },
-    { name: "Contato", path: "/chat/cliente" },
+    { name: "Sobre", path: "/#about" },
+    { name: "Contato", path: "/#contact" },
   ];
-
-  const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>, path: string) => {
-    if (path.startsWith("/#") && location.pathname === "/") {
-      e.preventDefault();
-      const id = path.replace("/#", "");
-      const el = document.getElementById(id);
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "start" });
-        el.classList.add("section-highlight");
-        setTimeout(() => el.classList.remove("section-highlight"), 600);
-      }
-    }
-  };
 
   return (
     <header
@@ -61,12 +48,9 @@ const Navbar = () => {
               <a
                 key={link.name}
                 href={link.path}
-                onClick={(e) => handleAnchorClick(e, link.path)}
                 className={`text-sm font-medium transition-colors hover:text-primary ${
                   location.pathname === link.path ? "text-primary" : "text-muted-foreground"
                 }`}
-                target={link.path.startsWith('http') ? '_blank' : undefined}
-                rel={link.path.startsWith('http') ? 'noopener noreferrer' : undefined}
               >
                 {link.name}
               </a>
@@ -105,15 +89,12 @@ const Navbar = () => {
                 <a
                   key={link.name}
                   href={link.path}
-                  onClick={(e) => {
-                    handleAnchorClick(e, link.path);
-                    setIsMobileMenuOpen(false);
-                  }}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-muted ${
                     location.pathname === link.path
                       ? "text-primary bg-primary/10"
                       : "text-muted-foreground"
                   }`}
+                  onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {link.name}
                 </a>

@@ -28,8 +28,8 @@ export interface UseSupervisorQueueReturn {
 }
 
 /* --- CONSTANTS --- */
-const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8080';
-const API_URL = import.meta.env.VITE_JAVA_API_URL || 'http://localhost:8080';
+const WS_URL = import.meta.env.VITE_WS_URL;
+const API_URL = import.meta.env.VITE_JAVA_API_URL;
 
 
 /**
@@ -49,42 +49,16 @@ export const useSupervisorQueue = ({ enabled = true }: UseSupervisorQueueOptions
           const sessions: SessionInfo[] = await response.json();
           setAvailableSessions(sessions);
           console.log('Loaded initial sessions:', sessions);
-          return;
         }
       } catch (error) {
         console.error('Error fetching initial sessions:', error);
       }
-
-      try {
-        const key = 'optySessions';
-        const local: SessionInfo[] = JSON.parse(localStorage.getItem(key) || '[]') || [];
-        setAvailableSessions(local);
-      } catch (e) {
-        void e;
-      }
     };
 
     fetchInitialSessions();
-
-    const interval = setInterval(() => {
-      try {
-        const key = 'optySessions';
-        const local: SessionInfo[] = JSON.parse(localStorage.getItem(key) || '[]') || [];
-        setAvailableSessions(local);
-      } catch (e) {
-        void e;
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
   }, [enabled]);
 
-  type QueueMessage = {
-    type: 'SESSION_QUEUE_UPDATE' | 'CONNECT' | string;
-    payload?: { sessions?: SessionInfo[]; message?: string };
-  };
-
-  const handleMessage = useCallback((wsMessage: QueueMessage) => {
+  const handleMessage = useCallback((wsMessage: any) => {
     console.log('Queue received message:', wsMessage);
 
     switch (wsMessage.type) {
@@ -134,15 +108,6 @@ export const useSupervisorQueue = ({ enabled = true }: UseSupervisorQueueOptions
     (sessionId: string) => {
       if (!isConnected) {
         console.warn('Cannot accept session, not connected');
-        try {
-          const key = 'optySessions';
-          const local: SessionInfo[] = JSON.parse(localStorage.getItem(key) || '[]') || [];
-          const updated = local.filter((s) => s.sessionId !== sessionId);
-          localStorage.setItem(key, JSON.stringify(updated));
-          setAvailableSessions(updated);
-        } catch (e) {
-          void e;
-        }
         return;
       }
 

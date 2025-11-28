@@ -43,10 +43,13 @@ export const useSupervisorChat = ({ sessionId }: UseSupervisorChatOptions): UseS
     console.log('Supervisor received message:', wsMessage);
 
     switch (wsMessage.type) {
-      case 'CONNECT': {
+      case 'CONNECT':
+        // Initial connection acknowledgment
         if (wsMessage.payload?.message?.includes('please send sessionId')) {
           console.log('Acknowledged, ready to join session');
-        } else if (wsMessage.payload?.paired) {
+        }
+        // Successfully joined session
+        else if (wsMessage.payload?.paired) {
           setIsPaired(true);
           const systemMessage: ChatMessage = {
             id: Date.now(),
@@ -57,8 +60,9 @@ export const useSupervisorChat = ({ sessionId }: UseSupervisorChatOptions): UseS
           setMessages((prev) => [...prev, systemMessage]);
         }
         break;
-      }
-      case 'MESSAGE': {
+
+      case 'MESSAGE':
+        // Message from client
         if (wsMessage.from === 'CLIENT' && wsMessage.payload?.text) {
           const newMessage: ChatMessage = {
             id: Date.now(),
@@ -70,8 +74,9 @@ export const useSupervisorChat = ({ sessionId }: UseSupervisorChatOptions): UseS
           setMessages((prev) => [...prev, newMessage]);
         }
         break;
-      }
-      case 'DISCONNECT': {
+
+      case 'DISCONNECT':
+        // Client disconnected
         const disconnectMessage: ChatMessage = {
           id: Date.now(),
           type: 'system',
@@ -81,12 +86,16 @@ export const useSupervisorChat = ({ sessionId }: UseSupervisorChatOptions): UseS
         setMessages((prev) => [...prev, disconnectMessage]);
         setIsPaired(false);
         break;
-      }
-      case 'ERROR': {
-        const errorText = (wsMessage.payload?.error as string) || 'Erro desconhecido';
+
+      case 'ERROR':
+        // Error from server
+        const errorText = wsMessage.payload?.error as string || 'Erro desconhecido';
+
+        // Check if it's a session error
         if (errorText.includes('Session not found') || errorText.includes('Failed to join session')) {
           setError(errorText);
         }
+
         const errorMessage: ChatMessage = {
           id: Date.now(),
           type: 'system',
@@ -95,7 +104,6 @@ export const useSupervisorChat = ({ sessionId }: UseSupervisorChatOptions): UseS
         };
         setMessages((prev) => [...prev, errorMessage]);
         break;
-      }
     }
   }, []);
 

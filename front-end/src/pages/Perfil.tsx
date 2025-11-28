@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { User, Camera, Smartphone, Shirt, Home, Dumbbell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,19 +9,32 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import DashboardNav from '@/components/DashboardNav';
 import Footer from '@/components/Footer';
-import { Sheet, SheetContent } from '@/components/ui/sheet';
-import { Bell, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 const Perfil = () => {
   const { toast } = useToast();
+  const { userProfile, updateUserProfile } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+
   const [personalInfo, setPersonalInfo] = useState({
-    name: 'João Silva',
-    email: 'joao@email.com',
-    phone: '(11) 98765-4321',
-    birthDate: '1990-05-15',
-    cpf: '123.456.789-00',
+    name: '',
+    email: '',
+    phone: '',
+    birthday: '',
   });
+
+  // Load user data when component mounts or userProfile changes
+  useEffect(() => {
+    if (userProfile) {
+      setPersonalInfo({
+        name: userProfile.name || '',
+        email: userProfile.email || '',
+        phone: userProfile.phone || '',
+        birthday: userProfile.birthday || '',
+      });
+    }
+  }, [userProfile]);
 
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
@@ -43,11 +56,30 @@ const Perfil = () => {
     { id: 'sports', name: 'Esportes e Fitness', icon: Dumbbell, selected: true },
   ];
 
-  const handleSavePersonalInfo = () => {
-    toast({
-      title: 'Informações atualizadas!',
-      description: 'Seus dados foram salvos com sucesso.',
-    });
+  const handleSavePersonalInfo = async () => {
+    try {
+      setIsLoading(true);
+
+      // Call updateUserProfile from AuthContext
+      await updateUserProfile({
+        name: personalInfo.name,
+        phone: personalInfo.phone || undefined,
+        birthday: personalInfo.birthday || undefined,
+      });
+
+      toast({
+        title: 'Informações atualizadas!',
+        description: 'Seus dados foram salvos com sucesso.',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao atualizar',
+        description: error.message || 'Não foi possível atualizar suas informações.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleChangePassword = () => {
@@ -95,10 +127,9 @@ const Perfil = () => {
 
   const passwordStrength = getPasswordStrength(passwordData.newPassword);
 
-  const [showNotifications, setShowNotifications] = useState(false);
   return (
-    <div className='min-h-screen flex flex-col bg-gradient-soft'>
-      <DashboardNav userName='João' onNotificationsClick={() => setShowNotifications(true)} />
+    <div className='min-h-screen flex flex-col bg-background'>
+      <DashboardNav userName={userProfile?.name || 'Usuário'} />
 
       <div className='flex-1 container mx-auto px-4 py-8'>
         <div className='max-w-6xl mx-auto'>
@@ -123,10 +154,10 @@ const Perfil = () => {
                     </button>
                   </div>
 
-                  <h3 className='font-semibold text-lg mb-1'>{personalInfo.name}</h3>
+                  <h3 className='font-semibold text-lg mb-1'>{personalInfo.name || 'Usuário'}</h3>
                   <p className='text-sm text-muted-foreground mb-3'>{personalInfo.email}</p>
                   <Badge variant='secondary' className='mb-4'>
-                    Membro desde Jan/2025
+                    {userProfile?.role === 'supervisor' ? 'Supervisor' : 'Membro'}
                   </Badge>
 
                   <Button variant='outline' size='sm' className='w-full'>
@@ -192,35 +223,41 @@ const Perfil = () => {
                         </div>
 
                         <div className='space-y-2'>
-                          <Label htmlFor='birthDate'>Data de Nascimento</Label>
+                          <Label htmlFor='birthday'>Data de Nascimento</Label>
                           <Input
-                            id='birthDate'
+                            id='birthday'
                             type='date'
-                            value={personalInfo.birthDate}
+                            value={personalInfo.birthday}
                             onChange={(e) =>
-                              setPersonalInfo({ ...personalInfo, birthDate: e.target.value })
-                            }
-                            className='bg-background'
-                          />
-                        </div>
-
-                        <div className='space-y-2 sm:col-span-2'>
-                          <Label htmlFor='cpf'>CPF</Label>
-                          <Input
-                            id='cpf'
-                            value={personalInfo.cpf}
-                            onChange={(e) =>
-                              setPersonalInfo({ ...personalInfo, cpf: e.target.value })
+                              setPersonalInfo({ ...personalInfo, birthday: e.target.value })
                             }
                           />
                         </div>
                       </div>
 
                       <div className='flex gap-3 pt-4'>
-                        <Button onClick={handleSavePersonalInfo} variant='gradient'>
-                          Salvar Alterações
+                        <Button
+                          onClick={handleSavePersonalInfo}
+                          variant='gradient'
+                          disabled={isLoading}
+                        >
+                          {isLoading ? 'Salvando...' : 'Salvar Alterações'}
                         </Button>
-                        <Button variant='ghost'>Cancelar</Button>
+                        <Button
+                          variant='ghost'
+                          onClick={() => {
+                            if (userProfile) {
+                              setPersonalInfo({
+                                name: userProfile.name || '',
+                                email: userProfile.email || '',
+                                phone: userProfile.phone || '',
+                                birthday: userProfile.birthday || '',
+                              });
+                            }
+                          }}
+                        >
+                          Cancelar
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
@@ -447,35 +484,7 @@ const Perfil = () => {
         </div>
       </div>
 
-      <Footer loggedIn />
-
-      <Sheet open={showNotifications} onOpenChange={setShowNotifications}>
-        <SheetContent side='left' className='w-96 p-0' hideClose>
-          <div className='bg-gradient-primary text-white p-4 flex items-center justify-between'>
-            <div className='flex items-center gap-3'>
-              <div className='w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center'>
-                <Bell className='h-5 w-5' />
-              </div>
-              <div>
-                <div className='text-sm font-semibold'>Central de Notificações</div>
-                <div className='text-xs opacity-80'>Atualizações e alertas do Opty</div>
-              </div>
-            </div>
-            <button className='rounded-md hover:bg-white/10 p-2' aria-label='Fechar' onClick={() => setShowNotifications(false)}>
-              <X className='h-5 w-5' />
-            </button>
-          </div>
-          <div className='p-4 space-y-3'>
-            <div className='glass p-4 rounded-xl border border-primary/20'>
-              <div className='flex items-center justify-between mb-1'>
-                <div className='text-sm font-medium'>Atualização de perfil</div>
-                <span className='text-xs text-muted-foreground'>ontem</span>
-              </div>
-              <p className='text-sm text-muted-foreground'>Suas preferências foram sincronizadas com sucesso.</p>
-            </div>
-          </div>
-        </SheetContent>
-      </Sheet>
+      <Footer />
     </div>
   );
 };

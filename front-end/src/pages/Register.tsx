@@ -1,15 +1,17 @@
+/**
+ * IMPORTS
+ */
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Mail,
   Lock,
   Eye,
   EyeOff,
   Tag,
-  Github,
   User,
   Phone,
-  Calendar as CalendarIcon 
+  Calendar as CalendarIcon
 } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
@@ -18,12 +20,23 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 
+/**
+ * CODE
+ */
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -38,12 +51,9 @@ const Register = () => {
     birthday: '',
   });
   const { toast } = useToast();
+  const { signUp } = useAuth();
+  const navigate = useNavigate();
   const [date, setDate] = useState<Date | undefined>();
-  const [birthdayText, setBirthdayText] = useState('');
-  const [birthdayError, setBirthdayError] = useState('');
-  const [openTerms, setOpenTerms] = useState(false);
-  const [openPrivacy, setOpenPrivacy] = useState(false);
-  const [phoneText, setPhoneText] = useState('');
 
 
   // Password strength calculator
@@ -61,11 +71,13 @@ const Register = () => {
     return { strength: 'Forte', color: 'text-accent' };
   };
 
+  // Evaluate password strength
   const passwordStrength = getPasswordStrength(formData.password);
 
+  // Form submission handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (formData.password !== formData.confirmPassword) {
       toast({
         title: 'Erro',
@@ -84,16 +96,38 @@ const Register = () => {
       return;
     }
 
+    // Start loading
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+
+      // Format birthday if date is selected
+      const birthday = date ? format(date, 'yyyy-MM-dd') : undefined;
+
+      await signUp(
+        formData.email,
+        formData.password,
+        formData.name,
+        formData.phone || undefined,
+        birthday
+      );
+
       toast({
         title: 'Conta criada com sucesso!',
-        description: 'Bem-vindo ao Opty.',
+        description: 'Bem-vindo ao Opty. Verifique seu e-mail para confirmar sua conta.',
       });
-    }, 1500);
+
+      navigate('/login');
+  
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao criar conta',
+        description: error.message || 'Ocorreu um erro ao criar sua conta. Tente novamente.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -128,7 +162,7 @@ const Register = () => {
                     placeholder='João Silva'
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className='pl-10 bg-background'
+                    className='pl-10'
                     required
                   />
                 </div>
@@ -145,7 +179,7 @@ const Register = () => {
                     placeholder='seu@email.com'
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className='pl-10 bg-background'
+                    className='pl-10'
                     required
                   />
                 </div>
@@ -159,21 +193,10 @@ const Register = () => {
                   <Input
                     id='phone'
                     type='tel'
-                    placeholder='(11) 94019-6301'
-                    value={phoneText}
-                    onChange={(e) => {
-                      const digits = e.target.value.replace(/\D/g, '').slice(0, 11);
-                      const dd = digits.slice(0, 2);
-                      const nine = digits.length > 10;
-                      const first = digits.slice(2, nine ? 7 : 6);
-                      const last = digits.slice(nine ? 7 : 6);
-                      const formatted = digits
-                        ? `(${dd}${digits.length >= 2 ? ')' : ''}${digits.length >= 3 ? ' ' : ''}${first}${digits.length >= (nine ? 7 : 6) && last ? '-' : ''}${last}`
-                        : '';
-                      setPhoneText(formatted);
-                      setFormData({ ...formData, phone: digits });
-                    }}
-                    className='pl-10 bg-background'
+                    placeholder='(99) 99999-9999'
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className='pl-10'
                     required
                   />
                 </div>
@@ -182,46 +205,30 @@ const Register = () => {
               {/* Birthday Field */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Data de Nascimento</label>
-                <div className="flex items-center gap-2">
-                  <div className="relative flex-1">
-                    <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                      placeholder="DD/MM/AAAA"
-                      value={birthdayText}
-                      onChange={(e) => {
-                        const digits = e.target.value.replace(/\D/g, '').slice(0, 8);
-                        let formatted = digits;
-                        if (digits.length >= 3) {
-                          formatted = `${digits.slice(0, 2)}/${digits.slice(2)}`;
-                        }
-                        if (digits.length >= 5) {
-                          formatted = `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
-                        }
-                        setBirthdayText(formatted);
-                        setBirthdayError('');
-                        if (digits.length === 8) {
-                          const d = Number(digits.slice(0, 2));
-                          const mo = Number(digits.slice(2, 4)) - 1;
-                          const y = Number(digits.slice(4));
-                          const dt = new Date(y, mo, d);
-                          if (dt.getFullYear() === y && dt.getMonth() === mo && dt.getDate() === d) {
-                            setDate(dt);
-                            setFormData({ ...formData, birthday: format(dt, 'yyyy-MM-dd') });
-                          } else {
-                            setBirthdayError('Data inválida');
-                            setFormData({ ...formData, birthday: '' });
-                          }
-                        } else {
-                          setFormData({ ...formData, birthday: '' });
-                        }
-                      }}
-                      className="pl-10"
+
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={`w-full justify-start text-left font-normal ${
+                        !date && 'text-muted-foreground'
+                      }`}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {date ? format(date, 'dd/MM/yyyy', { locale: ptBR }) : <span>Selecione uma data</span>}
+                    </Button>
+                  </PopoverTrigger>
+
+                  <PopoverContent align="start" className="p-0">
+                    <Calendar
+                      mode="single"
+                      selected={date}
+                      onSelect={setDate}
+                      initialFocus
+                      captionLayout="dropdown"
                     />
-                  </div>
-                  
-                </div>
-                {birthdayError && <div className="text-xs text-destructive">{birthdayError}</div>}
-                {!birthdayError && !birthdayText && <div className="text-xs text-muted-foreground">Formato: DD/MM/AAAA</div>}
+                  </PopoverContent>
+                </Popover>
               </div>
 
               {/* Password Field */}
@@ -308,49 +315,55 @@ const Register = () => {
                   className='text-sm leading-relaxed peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer'
                 >
                   Aceito os{' '}
-                  <a href='#' className='text-primary hover:underline font-medium' onClick={(e) => { e.preventDefault(); setOpenTerms(true); }}>
-                    Termos de Uso
-                  </a>{' '}
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <button
+                      type="button"
+                      className="text-primary hover:underline font-medium"
+                    >
+                      Termos de Uso
+                    </button>
+                  </DialogTrigger>
+
+                  <DialogContent className="max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>Termos de Uso</DialogTitle>
+                    </DialogHeader>
+
+                    <div className="space-y-4 text-sm">
+                      <p>Bem-vindo aos Termos de Uso da plataforma Opty...</p>
+                      <p>1. Informações gerais...</p>
+                      <p>2. Responsabilidades do usuário...</p>
+                      <p>3. Coleta e uso de dados...</p>
+                    </div>
+                  </DialogContent>
+                </Dialog>{' '}
                   e{' '}
-                  <a href='#' className='text-primary hover:underline font-medium' onClick={(e) => { e.preventDefault(); setOpenPrivacy(true); }}>
-                    Política de Privacidade
-                  </a>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <button
+                      type="button"
+                      className="text-primary hover:underline font-medium"
+                    >
+                      Termos de Uso
+                    </button>
+                  </DialogTrigger>
+
+                  <DialogContent className="max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>Política de Privacidade</DialogTitle>
+                    </DialogHeader>
+
+                    <div className="space-y-4 text-sm">
+                      <p>Esta Política de Privacidade descreve como a Opty coleta...</p>
+                      <p>1. Informações que coletamos...</p>
+                      <p>2. Como usamos suas informações...</p>
+                      <p>3. Compartilhamento de informações...</p>
+                    </div>
+                  </DialogContent>
+                </Dialog>
                 </label>
               </div>
-
-              <Dialog open={openTerms} onOpenChange={setOpenTerms}>
-                <DialogContent className='max-w-2xl p-0 overflow-hidden'>
-                  <div className='bg-gradient-primary text-white p-4'>
-                    <div className='text-base font-semibold'>Termos de Uso</div>
-                    <div className='text-xs opacity-80'>Leia atentamente os termos antes de prosseguir</div>
-                  </div>
-                  <div className='p-6 space-y-4 text-sm text-muted-foreground'>
-                    <p>Estes termos regem o uso da plataforma Opty. Ao criar sua conta, você concorda com as condições de uso e políticas vigentes.</p>
-                    <p>Uso adequado, privacidade e segurança das credenciais são de responsabilidade do usuário.</p>
-                    <p>Para a versão completa, consulte a página <a href='/termos' className='text-primary hover:underline'>Termos e Condições</a>.</p>
-                    <div className='pt-2'>
-                      <Button variant='gradient' className='w-full' onClick={() => setOpenTerms(false)}>Fechar</Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
-
-              <Dialog open={openPrivacy} onOpenChange={setOpenPrivacy}>
-                <DialogContent className='max-w-2xl p-0 overflow-hidden'>
-                  <div className='bg-gradient-primary text-white p-4'>
-                    <div className='text-base font-semibold'>Política de Privacidade</div>
-                    <div className='text-xs opacity-80'>Veja como tratamos seus dados</div>
-                  </div>
-                  <div className='p-6 space-y-4 text-sm text-muted-foreground'>
-                    <p>Coletamos dados para personalização e melhoria contínua da plataforma. Não vendemos suas informações.</p>
-                    <p>Adotamos práticas de segurança e controles de acesso para proteger seus dados.</p>
-                    <p>Para a versão completa, acesse <a href='/privacidade' className='text-primary hover:underline'>Política de Privacidade</a>.</p>
-                    <div className='pt-2'>
-                      <Button variant='gradient' className='w-full' onClick={() => setOpenPrivacy(false)}>Fechar</Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
 
               {/* Submit Button */}
               <Button

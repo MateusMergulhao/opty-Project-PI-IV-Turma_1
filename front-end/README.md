@@ -1,7 +1,5 @@
 # Opty - Front-end
 
-<img src="https://readme-typing-svg.demolab.com?lines=Opty+Frontend;UI+em+React;Tailwind+CSS;Zustand&center=true&size=20" />
-
 ## Prerequisites
 
 Before you begin, make sure you have installed:
@@ -15,7 +13,7 @@ Before you begin, make sure you have installed:
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/victorpalmaa/opty-frontend.git
+git clone git@github.com:eduardokairalla1/opty-frontend.git
 cd opty-frontend
 ```
 
@@ -143,6 +141,3 @@ src/
 - `/perfil` - User profile
 - `/chat/cliente` - Client chat
 - `/chat/supervisor/:sessionId?` - Supervisor chat (with optional session ID)
-- `/forgot-password` - Password recovery
-- `/termos` - Terms and conditions
-- `/privacidade` - Privacy policy
